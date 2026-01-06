@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Random Review</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background-color: #f5f5f5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+
+    .quote-wrapper {
+      background-color: #ffffff;
+      padding: 40px 60px;
+      max-width: 700px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+      text-align: center;
+      border-radius: 8px;
+    }
+
+    .quote-text {
+      font-size: 24px;
+      line-height: 1.5;
+      color: #333333;
+      margin-bottom: 24px;
+    }
+
+    .quote-source {
+      font-size: 16px;
+      color: #777777;
+    }
+
+    .quote-source::before {
+      content: "— ";
+    }
+
+    .loading,
+    .error {
+      font-size: 16px;
+      color: #777777;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="quote-wrapper">
+    <div id="status" class="loading">Loading review...</div>
+    <div id="quote" class="quote-text" style="display:none;"></div>
+    <div id="source" class="quote-source" style="display:none;"></div>
+  </div>
+
+  <script>
+    // Your Google Sheet info
+    const spreadsheetId = "12Kr7faOpqZeDDVhnijzpm8AJYJdmR8NxxuUfVbKgnlU";
+    const sheetName = "Sheet1"; // change if your sheet/tab has a different name
+
+    // Build the Google Visualization API URL (returns JSON-like data)
+    const url =
+      "https://docs.google.com/spreadsheets/d/" +
+      spreadsheetId +
+      "/gviz/tq?tqx=out:json&sheet=" +
+      encodeURIComponent(sheetName);
+
+    function showStatus(message, isError = false) {
+      const statusEl = document.getElementById("status");
+      statusEl.textContent = message;
+      statusEl.className = isError ? "error" : "loading";
+      statusEl.style.display = "block";
+    }
+
+    function hideStatus() {
+      const statusEl = document.getElementById("status");
+      statusEl.style.display = "none";
+    }
+
+    function displayReview(name, review) {
+      const quoteEl = document.getElementById("quote");
+      const sourceEl = document.getElementById("source");
+
+      quoteEl.textContent = review;
+      sourceEl.textContent = name;
+
+      quoteEl.style.display = "block";
+      sourceEl.style.display = "block";
+    }
+
+    async function loadRandomReview() {
+      try {
+        showStatus("Loading review...");
+
+        const response = await fetch(url);
+        const text = await response.text();
+
+        // The gviz endpoint wraps JSON in a function call, so we strip it out
+        const jsonText = text.substring(text.indexOf("{"), text.lastIndexOf("}") + 1);
+        const data = JSON.parse(jsonText);
+
+        const table = data.table;
+        const headers = table.cols.map(col => col.label);
+
+        const nameIndex = headers.indexOf("Name");
+        const reviewIndex = headers.indexOf("Review");
+
+        if (nameIndex === -1 || reviewIndex === -1) {
+          showStatus('Could not find "Name" and "Review" columns.', true);
+          return;
+        }
+
+        // Extract all data rows (skip any completely empty rows)
+        const rows = table.rows
+          .map(row => {
+            const cells = row.c;
+            const nameCell = cells[nameIndex];
+            const reviewCell = cells[reviewIndex];
+
+            return {
+              name: nameCell ? nameCell.v : "",
+              review: reviewCell ? reviewCell.v : ""
+            };
+          })
+          .filter(r => r.name && r.review);
+
+        if (rows.length === 0) {
+          showStatus("No reviews found in the sheet.", true);
+          return;
+        }
+
+        // Select a random review
+        const randomIndex = Math.floor(Math.random() * rows.length);
+        const randomReview = rows[randomIndex];
+
+        hideStatus();
+        displayReview(randomReview.name, randomReview.review);
+      } catch (error) {
+        console.error(error);
+        showStatus("Error loading review. Please try again later.", true);
+      }
+    }
+
+    loadRandomReview();
+  </script>
+</body>
+</html>
