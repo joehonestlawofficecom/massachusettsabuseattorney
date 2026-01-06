@@ -164,8 +164,9 @@
         document.getElementById("quote").style.display = "block";
         document.getElementById("source").style.display = "block";
 
-        updateDisplay(reviews[0].name, reviews[0].review);
-        setInterval(fadeToNextReview, intervalTime);
+        currentIndex = Math.floor(Math.random() * reviews.length);
+        updateDisplay(reviews[currentIndex].name, reviews[currentIndex].review);
+	setInterval(fadeToNextReview, intervalTime);
       })
       .catch(err => {
         console.error(err);
