@@ -95,45 +95,80 @@
   </div>
 
   <script>
-    const spreadsheetId = "12Kr7faOpqZeDDVhnijzpm8AJYJdmR8NxxuUfVbKgnlU";
-    const sheetName = "Sheet1";
-    const url = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/gviz/tq?tqx=out:json&sheet=${sheetName}`;
+  const spreadsheetId = "12Kr7faOpqZeDDVhnijzpm8AJYJdmR8NxxuUfVbKgnlU";
+  const sheetName = "Sheet1";
+  const url = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/gviz/tq?tqx=out:json&sheet=${sheetName}`;
 
-    let reviews = [];
-    let currentIndex = 0;
-    const intervalTime = 5000; // 5 seconds
+  let reviews = [];
+  let currentIndex = 0;
+  const intervalTime = 5000;
 
-    function showStatus(message, isError=false){
-      const s = document.getElementById("status");
-      s.textContent = message;
-      s.className = isError ? "error" : "loading";
-      s.style.display = "block";
-    }
-    function hideStatus(){ document.getElementById("status").style.display = "none"; }
+  function showStatus(message, isError = false) {
+    const s = document.getElementById("status");
+    s.textContent = message;
+    s.className = isError ? "error" : "loading";
+    s.style.display = "block";
+  }
 
-    function updateDisplay(name, review){
-      const quote = document.getElementById("quote");
-      const source = document.getElementById("source");
+  function hideStatus() {
+    document.getElementById("status").style.display = "none";
+  }
 
-      quote.textContent = review;
-      source.textContent = name;
-    }
+  function updateDisplay(name, review) {
+    document.getElementById("quote").textContent = review;
+    document.getElementById("source").textContent = name;
+  }
 
-    function fadeToNextReview(){
-      const quote = document.getElementById("quote");
-      const source = document.getElementById("source");
+  function fadeToNextReview() {
+    const quote = document.getElementById("quote");
+    const source = document.getElementById("source");
 
-      // Fade out
-      quote.classList.add("fade-out");
-      source.classList.add("fade-out");
+    quote.classList.add("fade-out");
+    source.classList.add("fade-out");
 
-      setTimeout(() => {
-        // Move to next review
-        currentIndex = (currentIndex + 1) % reviews.length;
-        const next = reviews[currentIndex];
+    setTimeout(() => {
+      currentIndex = (currentIndex + 1) % reviews.length;
+      const next = reviews[currentIndex];
+      updateDisplay(next.name, next.review);
 
-        updateDisplay(next.name, next.review);
+      quote.classList.remove("fade-out");
+      source.classList.remove("fade-out");
+    }, 600);
+  }
 
-        // Fade in
-        quote.classList.remove("fade-out");
-        source.classList.remove("fade-out");
+  fetch(url)
+    .then(res => res.text())
+    .then(text => {
+      const json = JSON.parse(
+        text.substring(
+          text.indexOf("{"),
+          text.lastIndexOf("}") + 1
+        )
+      );
+
+      const rows = json.table.rows;
+
+      reviews = rows.map(r => ({
+        name: r.c[0]?.v || "",
+        review: r.c[1]?.v || ""
+      }));
+
+      if (!reviews.length) {
+        showStatus("No reviews found", true);
+        return;
+      }
+
+      hideStatus();
+
+      document.getElementById("quote-mark").style.display = "block";
+      document.getElementById("quote").style.display = "block";
+      document.getElementById("source").style.display = "block";
+
+      updateDisplay(reviews[0].name, reviews[0].review);
+      setInterval(fadeToNextReview, intervalTime);
+    })
+    .catch(err => {
+      console.error(err);
+      showStatus("Unable to load reviews", true);
+    });
+</script>
