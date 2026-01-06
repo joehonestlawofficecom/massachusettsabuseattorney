@@ -1,55 +1,86 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8" />
   <title>Client Testimonial</title>
   <style>
-    body {
-      margin: 0;
-      padding: 0;
-      background-color: #ffffff;
-      font-family: "Segoe UI", system-ui, sans-serif;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
+    :root{
+      --bg: #ffffff;
+      --quote-color: #222222;      /* darker charcoal for main quote */
+      --source-color: #6b6b6b;     /* softer gray for attribution */
+      --accent-quote: #e9e9e9;     /* muted quote mark color */
+      --max-width: 720px;
+    }
+
+    html,body{
+      height:100%;
+      margin:0;
+      background:var(--bg);
+      font-family: Georgia, "Times New Roman", serif;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      display:flex;
+      align-items:center;
+      justify-content:center;
     }
 
     .testimonial {
-      text-align: center;
-      max-width: 700px;
-      padding: 60px 40px;
+      max-width: var(--max-width);
+      padding: 64px 48px;
       box-sizing: border-box;
+      text-align: center;
+      color: var(--quote-color);
     }
 
     .quote-mark {
-      font-size: 60px;
-      color: #555555;
-      line-height: 0.5;
-      margin-bottom: 20px;
+      font-size: 72px;
+      color: var(--accent-quote);
+      line-height: 0.6;
+      margin-bottom: 18px;
+      letter-spacing: 2px;
+      display:block;
+      transform: translateY(2px);
     }
 
     .quote-text {
-      font-size: 24px;
-      line-height: 1.6;
-      color: #333333;
-      margin-bottom: 30px;
+      font-size: 22px;
+      line-height: 1.75;
+      color: var(--quote-color);
+      margin: 0 auto 28px;
+      max-width: 64ch;
+      font-style: italic;
+      font-weight: 400;
+      opacity: 0;
+      transform: translateY(6px);
+      animation: fadeUp 420ms ease forwards;
     }
 
     .quote-source {
-      font-size: 16px;
-      color: #777777;
+      font-size: 15px;
+      color: var(--source-color);
+      font-weight: 500;
+      letter-spacing: 0.2px;
+      opacity: 0;
+      transform: translateY(6px);
+      animation: fadeUp 420ms ease forwards 120ms;
     }
 
-    .quote-source::before {
-      content: "— ";
+    .quote-source::before { content: "— "; }
+
+    .loading, .error {
+      font-size: 15px;
+      color: var(--source-color);
     }
 
-    .loading,
-    .error {
-      font-size: 16px;
-      color: #777777;
-      text-align: center;
+    @keyframes fadeUp {
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Responsive tweaks */
+    @media (max-width:520px){
+      .testimonial { padding: 36px 20px; }
+      .quote-mark { font-size: 56px; }
+      .quote-text { font-size: 18px; line-height:1.6; }
     }
   </style>
 </head>
@@ -66,55 +97,41 @@
     const sheetName = "Sheet1";
     const url = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/gviz/tq?tqx=out:json&sheet=${sheetName}`;
 
-    function showStatus(message, isError = false) {
-      const statusEl = document.getElementById("status");
-      statusEl.textContent = message;
-      statusEl.className = isError ? "error" : "loading";
-      statusEl.style.display = "block";
+    function showStatus(message, isError=false){
+      const s = document.getElementById("status");
+      s.textContent = message;
+      s.className = isError ? "error" : "loading";
+      s.style.display = "block";
     }
+    function hideStatus(){ document.getElementById("status").style.display = "none"; }
 
-    function hideStatus() {
-      document.getElementById("status").style.display = "none";
-    }
-
-    function displayReview(name, review) {
+    function displayReview(name, review){
       document.getElementById("quote-mark").style.display = "block";
-      document.getElementById("quote").textContent = review;
-      document.getElementById("source").textContent = name;
-      document.getElementById("quote").style.display = "block";
-      document.getElementById("source").style.display = "block";
+      const q = document.getElementById("quote");
+      const s = document.getElementById("source");
+      q.textContent = review;
+      s.textContent = name;
+      hideStatus();
+      q.style.display = "block";
+      s.style.display = "block";
     }
 
-    async function loadReview() {
-      try {
+    async function loadReview(){
+      try{
         showStatus("Loading review...");
-
-        const response = await fetch(url);
-        const text = await response.text();
-        const jsonText = text.substring(text.indexOf("{"), text.lastIndexOf("}") + 1);
+        const res = await fetch(url);
+        const text = await res.text();
+        const jsonText = text.substring(text.indexOf("{"), text.lastIndexOf("}")+1);
         const data = JSON.parse(jsonText);
-
         const rows = data.table.rows
-          .map(row => {
-            const cells = row.c;
-            return {
-              name: cells[0]?.v || "",
-              review: cells[1]?.v || ""
-            };
-          })
-          .filter(r => r.name && r.review);
-
-        if (rows.length === 0) {
-          showStatus("No reviews found.", true);
-          return;
-        }
-
-        const randomReview = rows[Math.floor(Math.random() * rows.length)];
-        hideStatus();
-        displayReview(randomReview.name, randomReview.review);
-      } catch (error) {
-        console.error(error);
-        showStatus("Error loading review. Please try again later.", true);
+          .map(r => ({ name: r.c[0]?.v || "", review: r.c[1]?.v || "" }))
+          .filter(x => x.name && x.review);
+        if(!rows.length){ showStatus("No reviews found.", true); return; }
+        const pick = rows[Math.floor(Math.random()*rows.length)];
+        displayReview(pick.name, pick.review);
+      }catch(err){
+        console.error(err);
+        showStatus("Error loading review.", true);
       }
     }
 
