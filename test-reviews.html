@@ -3,6 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <title>Client Testimonial</title>
+
   <style>
     :root{
       --bg: #ffffff;
@@ -12,22 +13,19 @@
       --max-width: 720px;
     }
 
-    html,body{
-      height:100%;
-      margin:0;
-      background:var(--bg);
+    html, body {
+      height: 100%;
+      margin: 0;
+      background: var(--bg);
       font-family: Georgia, "Times New Roman", serif;
-      -webkit-font-smoothing:antialiased;
-      -moz-osx-font-smoothing:grayscale;
-      display:flex;
-      align-items:center;
-      justify-content:center;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
     }
 
     .testimonial {
       max-width: var(--max-width);
-      padding: 64px 48px;
-      box-sizing: border-box;
+      padding: 32px 48px;
+      margin: 0 auto;
       text-align: center;
       color: var(--quote-color);
     }
@@ -38,8 +36,7 @@
       line-height: 0.6;
       margin-bottom: 18px;
       letter-spacing: 2px;
-      display:block;
-      transform: translateY(2px);
+      display: block;
     }
 
     .quote-text,
@@ -55,23 +52,20 @@
     .quote-text {
       font-size: 22px;
       line-height: 1.75;
-      color: var(--quote-color);
       margin: 0 auto 28px;
       max-width: 64ch;
       font-style: italic;
-      font-weight: 400;
     }
 
     .quote-source {
       font-size: 22px;
       line-height: 1.75;
       color: var(--source-color);
-      font-style: normal;
-      font-weight: 400;
-      letter-spacing: 0.2px;
     }
 
-    .quote-source::before { content: "— "; }
+    .quote-source::before {
+      content: "— ";
+    }
 
     .loading, .error {
       font-size: 15px;
@@ -79,96 +73,104 @@
     }
 
     @media (max-width:520px){
-      .testimonial { padding: 36px 20px; }
+      .testimonial { padding: 24px 20px; }
       .quote-mark { font-size: 56px; }
-      .quote-text { font-size: 18px; line-height:1.6; }
-      .quote-source { font-size: 18px; line-height:1.6; }
+      .quote-text,
+      .quote-source {
+        font-size: 18px;
+        line-height: 1.6;
+      }
     }
   </style>
 </head>
+
 <body>
   <div class="testimonial">
     <div id="status" class="loading">Loading review...</div>
+
     <div id="quote-mark" class="quote-mark" style="display:none;">“</div>
     <div id="quote" class="quote-text" style="display:none;"></div>
     <div id="source" class="quote-source" style="display:none;"></div>
   </div>
 
   <script>
-  const spreadsheetId = "12Kr7faOpqZeDDVhnijzpm8AJYJdmR8NxxuUfVbKgnlU";
-  const sheetName = "Sheet1";
-  const url = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/gviz/tq?tqx=out:json&sheet=${sheetName}`;
+    const spreadsheetId = "12Kr7faOpqZeDDVhnijzpm8AJYJdmR8NxxuUfVbKgnlU";
+    const sheetName = "Sheet1";
+    const url = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/gviz/tq?tqx=out:json&sheet=${sheetName}`;
 
-  let reviews = [];
-  let currentIndex = 0;
-  const intervalTime = 5000;
+    let reviews = [];
+    let currentIndex = 0;
+    const intervalTime = 5000;
 
-  function showStatus(message, isError = false) {
-    const s = document.getElementById("status");
-    s.textContent = message;
-    s.className = isError ? "error" : "loading";
-    s.style.display = "block";
-  }
+    function showStatus(message, isError = false) {
+      const s = document.getElementById("status");
+      s.textContent = message;
+      s.className = isError ? "error" : "loading";
+      s.style.display = "block";
+    }
 
-  function hideStatus() {
-    document.getElementById("status").style.display = "none";
-  }
+    function hideStatus() {
+      document.getElementById("status").style.display = "none";
+    }
 
-  function updateDisplay(name, review) {
-    document.getElementById("quote").textContent = review;
-    document.getElementById("source").textContent = name;
-  }
+    function updateDisplay(name, review) {
+      document.getElementById("quote").textContent = review;
+      document.getElementById("source").textContent = name;
+    }
 
-  function fadeToNextReview() {
-    const quote = document.getElementById("quote");
-    const source = document.getElementById("source");
+    function fadeToNextReview() {
+      const quote = document.getElementById("quote");
+      const source = document.getElementById("source");
 
-    quote.classList.add("fade-out");
-    source.classList.add("fade-out");
+      quote.classList.add("fade-out");
+      source.classList.add("fade-out");
 
-    setTimeout(() => {
-      currentIndex = (currentIndex + 1) % reviews.length;
-      const next = reviews[currentIndex];
-      updateDisplay(next.name, next.review);
+      setTimeout(() => {
+        currentIndex = (currentIndex + 1) % reviews.length;
+        const next = reviews[currentIndex];
+        updateDisplay(next.name, next.review);
 
-      quote.classList.remove("fade-out");
-      source.classList.remove("fade-out");
-    }, 600);
-  }
+        quote.classList.remove("fade-out");
+        source.classList.remove("fade-out");
+      }, 600);
+    }
 
-  fetch(url)
-    .then(res => res.text())
-    .then(text => {
-      const json = JSON.parse(
-        text.substring(
-          text.indexOf("{"),
-          text.lastIndexOf("}") + 1
-        )
-      );
+    fetch(url)
+      .then(res => res.text())
+      .then(text => {
+        const json = JSON.parse(
+          text.substring(
+            text.indexOf("{"),
+            text.lastIndexOf("}") + 1
+          )
+        );
 
-      const rows = json.table.rows;
+        // Skip first row (column headings)
+        const rows = json.table.rows.slice(1);
 
-      reviews = rows.map(r => ({
-        name: r.c[0]?.v || "",
-        review: r.c[1]?.v || ""
-      }));
+        reviews = rows.map(r => ({
+          name: r.c[0]?.v || "",
+          review: r.c[1]?.v || ""
+        }));
 
-      if (!reviews.length) {
-        showStatus("No reviews found", true);
-        return;
-      }
+        if (!reviews.length) {
+          showStatus("No reviews found", true);
+          return;
+        }
 
-      hideStatus();
+        hideStatus();
 
-      document.getElementById("quote-mark").style.display = "block";
-      document.getElementById("quote").style.display = "block";
-      document.getElementById("source").style.display = "block";
+        document.getElementById("quote-mark").style.display = "block";
+        document.getElementById("quote").style.display = "block";
+        document.getElementById("source").style.display = "block";
 
-      updateDisplay(reviews[0].name, reviews[0].review);
-      setInterval(fadeToNextReview, intervalTime);
-    })
-    .catch(err => {
-      console.error(err);
-      showStatus("Unable to load reviews", true);
-    });
-</script>
+        updateDisplay(reviews[0].name, reviews[0].review);
+        setInterval(fadeToNextReview, intervalTime);
+      })
+      .catch(err => {
+        console.error(err);
+        showStatus("Unable to load reviews", true);
+      });
+  </script>
+</body>
+</html>
