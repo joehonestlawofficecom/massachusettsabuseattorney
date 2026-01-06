@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Random Review</title>
+  <title>Rotating Review</title>
   <style>
     body {
       margin: 0;
@@ -56,16 +56,9 @@
   </div>
 
   <script>
-    // Your Google Sheet info
     const spreadsheetId = "12Kr7faOpqZeDDVhnijzpm8AJYJdmR8NxxuUfVbKgnlU";
-    const sheetName = "Sheet1"; // change if your sheet/tab has a different name
-
-    // Build the Google Visualization API URL (returns JSON-like data)
-    const url =
-      "https://docs.google.com/spreadsheets/d/" +
-      spreadsheetId +
-      "/gviz/tq?tqx=out:json&sheet=" +
-      encodeURIComponent(sheetName);
+    const sheetName = "Sheet1";
+    const url = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/gviz/tq?tqx=out:json&sheet=${sheetName}`;
 
     function showStatus(message, isError = false) {
       const statusEl = document.getElementById("status");
@@ -75,68 +68,41 @@
     }
 
     function hideStatus() {
-      const statusEl = document.getElementById("status");
-      statusEl.style.display = "none";
+      document.getElementById("status").style.display = "none";
     }
 
     function displayReview(name, review) {
-      const quoteEl = document.getElementById("quote");
-      const sourceEl = document.getElementById("source");
-
-      quoteEl.textContent = review;
-      sourceEl.textContent = name;
-
-      quoteEl.style.display = "block";
-      sourceEl.style.display = "block";
+      document.getElementById("quote").textContent = review;
+      document.getElementById("source").textContent = name;
+      document.getElementById("quote").style.display = "block";
+      document.getElementById("source").style.display = "block";
     }
 
-    async function loadRandomReview() {
+    async function loadReview() {
       try {
         showStatus("Loading review...");
 
         const response = await fetch(url);
         const text = await response.text();
-
-        // The gviz endpoint wraps JSON in a function call, so we strip it out
         const jsonText = text.substring(text.indexOf("{"), text.lastIndexOf("}") + 1);
         const data = JSON.parse(jsonText);
 
-        const table = data.table;
-        //const headers = table.cols.map(col => col.label);
-	const headers = table.cols.map(col => col.label);
-	console.log("Detected headers:", headers);
-
-        const nameIndex = headers.indexOf("Name");
-        const reviewIndex = headers.indexOf("Review");
-
-        if (nameIndex === -1 || reviewIndex === -1) {
-          showStatus('Could not find "Name" and "Review" columns.', true);
-          return;
-        }
-
-        // Extract all data rows (skip any completely empty rows)
-        const rows = table.rows
+        const rows = data.table.rows
           .map(row => {
             const cells = row.c;
-            const nameCell = cells[nameIndex];
-            const reviewCell = cells[reviewIndex];
-
             return {
-              name: nameCell ? nameCell.v : "",
-              review: reviewCell ? reviewCell.v : ""
+              name: cells[0]?.v || "",
+              review: cells[1]?.v || ""
             };
           })
           .filter(r => r.name && r.review);
 
         if (rows.length === 0) {
-          showStatus("No reviews found in the sheet.", true);
+          showStatus("No reviews found.", true);
           return;
         }
 
-        // Select a random review
-        const randomIndex = Math.floor(Math.random() * rows.length);
-        const randomReview = rows[randomIndex];
-
+        const randomReview = rows[Math.floor(Math.random() * rows.length)];
         hideStatus();
         displayReview(randomReview.name, randomReview.review);
       } catch (error) {
@@ -145,7 +111,7 @@
       }
     }
 
-    loadRandomReview();
+    loadReview();
   </script>
 </body>
 </html>
