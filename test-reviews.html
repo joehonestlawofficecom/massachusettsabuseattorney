@@ -6,9 +6,9 @@
   <style>
     :root{
       --bg: #ffffff;
-      --quote-color: #222222;      /* darker charcoal for main quote */
-      --source-color: #5f5f5f;     /* slightly darker attribution */
-      --accent-quote: #777777;     /* darker quote mark */
+      --quote-color: #222222;      /* main quote color */
+      --source-color: #6f6f6f;     /* slightly lighter attribution */
+      --accent-quote: #d9d9d9;     /* lighter quote mark */
       --max-width: 720px;
     }
 
@@ -34,7 +34,7 @@
 
     .quote-mark {
       font-size: 72px;
-      color: var(--accent-quote);   /* darker than before */
+      color: var(--accent-quote);   /* lighter than before */
       line-height: 0.6;
       margin-bottom: 18px;
       letter-spacing: 2px;
@@ -43,7 +43,7 @@
     }
 
     .quote-text {
-      font-size: 22px;
+      font-size: 22px;             /* quote size */
       line-height: 1.75;
       color: var(--quote-color);
       margin: 0 auto 28px;
@@ -56,9 +56,11 @@
     }
 
     .quote-source {
-      font-size: 18px;              /* increased size for the name */
-      color: var(--source-color);
-      font-weight: 600;             /* slightly bolder */
+      font-size: 22px;             /* same size as quote */
+      line-height: 1.75;
+      color: var(--source-color);  /* slightly lighter */
+      font-style: normal;          /* not italic */
+      font-weight: 400;
       letter-spacing: 0.2px;
       opacity: 0;
       transform: translateY(6px);
@@ -80,7 +82,7 @@
       .testimonial { padding: 36px 20px; }
       .quote-mark { font-size: 56px; }
       .quote-text { font-size: 18px; line-height:1.6; }
-      .quote-source { font-size: 16px; }
+      .quote-source { font-size: 18px; line-height:1.6; }
     }
   </style>
 </head>
