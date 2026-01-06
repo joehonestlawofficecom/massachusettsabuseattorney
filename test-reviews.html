@@ -6,9 +6,9 @@
   <style>
     :root{
       --bg: #ffffff;
-      --quote-color: #222222;      /* main quote color */
-      --source-color: #6f6f6f;     /* slightly lighter attribution */
-      --accent-quote: #d9d9d9;     /* lighter quote mark */
+      --quote-color: #222222;
+      --source-color: #6f6f6f;
+      --accent-quote: #d9d9d9;
       --max-width: 720px;
     }
 
@@ -34,7 +34,7 @@
 
     .quote-mark {
       font-size: 72px;
-      color: var(--accent-quote);   /* lighter than before */
+      color: var(--accent-quote);
       line-height: 0.6;
       margin-bottom: 18px;
       letter-spacing: 2px;
@@ -43,7 +43,7 @@
     }
 
     .quote-text {
-      font-size: 22px;             /* quote size */
+      font-size: 22px;
       line-height: 1.75;
       color: var(--quote-color);
       margin: 0 auto 28px;
@@ -56,10 +56,10 @@
     }
 
     .quote-source {
-      font-size: 22px;             /* same size as quote */
+      font-size: 22px;
       line-height: 1.75;
-      color: var(--source-color);  /* slightly lighter */
-      font-style: normal;          /* not italic */
+      color: var(--source-color);
+      font-style: normal;
       font-weight: 400;
       letter-spacing: 0.2px;
       opacity: 0;
@@ -125,10 +125,23 @@
         const text = await res.text();
         const jsonText = text.substring(text.indexOf("{"), text.lastIndexOf("}")+1);
         const data = JSON.parse(jsonText);
-        const rows = data.table.rows
+
+        // raw rows returned by gviz
+        const rawRows = data.table.rows || [];
+
+        // Primary safeguard: skip the first row (assumed header)
+        const contentRows = rawRows.slice(1);
+
+        // Secondary safeguard: filter out any accidental header-like rows
+        const rows = contentRows
           .map(r => ({ name: r.c[0]?.v || "", review: r.c[1]?.v || "" }))
-          .filter(x => x.name && x.review);
-        if(!rows.length){ showStatus("No reviews found.", true); return; }
+          .filter(x => x.name && x.review && !(x.name === "Name" && x.review === "Review"));
+
+        if(!rows.length){
+          showStatus("No reviews found.", true);
+          return;
+        }
+
         const pick = rows[Math.floor(Math.random()*rows.length)];
         displayReview(pick.name, pick.review);
       }catch(err){
