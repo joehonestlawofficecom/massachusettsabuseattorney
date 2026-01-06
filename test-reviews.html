@@ -42,6 +42,16 @@
       transform: translateY(2px);
     }
 
+    .quote-text,
+    .quote-source {
+      opacity: 1;
+      transition: opacity 0.6s ease;
+    }
+
+    .fade-out {
+      opacity: 0;
+    }
+
     .quote-text {
       font-size: 22px;
       line-height: 1.75;
@@ -50,9 +60,6 @@
       max-width: 64ch;
       font-style: italic;
       font-weight: 400;
-      opacity: 0;
-      transform: translateY(6px);
-      animation: fadeUp 420ms ease forwards;
     }
 
     .quote-source {
@@ -62,9 +69,6 @@
       font-style: normal;
       font-weight: 400;
       letter-spacing: 0.2px;
-      opacity: 0;
-      transform: translateY(6px);
-      animation: fadeUp 420ms ease forwards 120ms;
     }
 
     .quote-source::before { content: "— "; }
@@ -72,10 +76,6 @@
     .loading, .error {
       font-size: 15px;
       color: var(--source-color);
-    }
-
-    @keyframes fadeUp {
-      to { opacity: 1; transform: translateY(0); }
     }
 
     @media (max-width:520px){
@@ -99,6 +99,10 @@
     const sheetName = "Sheet1";
     const url = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/gviz/tq?tqx=out:json&sheet=${sheetName}`;
 
+    let reviews = [];
+    let currentIndex = 0;
+    const intervalTime = 5000; // 5 seconds
+
     function showStatus(message, isError=false){
       const s = document.getElementById("status");
       s.textContent = message;
@@ -107,50 +111,29 @@
     }
     function hideStatus(){ document.getElementById("status").style.display = "none"; }
 
-    function displayReview(name, review){
-      document.getElementById("quote-mark").style.display = "block";
-      const q = document.getElementById("quote");
-      const s = document.getElementById("source");
-      q.textContent = review;
-      s.textContent = name;
-      hideStatus();
-      q.style.display = "block";
-      s.style.display = "block";
+    function updateDisplay(name, review){
+      const quote = document.getElementById("quote");
+      const source = document.getElementById("source");
+
+      quote.textContent = review;
+      source.textContent = name;
     }
 
-    async function loadReview(){
-      try{
-        showStatus("Loading review...");
-        const res = await fetch(url);
-        const text = await res.text();
-        const jsonText = text.substring(text.indexOf("{"), text.lastIndexOf("}")+1);
-        const data = JSON.parse(jsonText);
+    function fadeToNextReview(){
+      const quote = document.getElementById("quote");
+      const source = document.getElementById("source");
 
-        // raw rows returned by gviz
-        const rawRows = data.table.rows || [];
+      // Fade out
+      quote.classList.add("fade-out");
+      source.classList.add("fade-out");
 
-        // Primary safeguard: skip the first row (assumed header)
-        const contentRows = rawRows.slice(1);
+      setTimeout(() => {
+        // Move to next review
+        currentIndex = (currentIndex + 1) % reviews.length;
+        const next = reviews[currentIndex];
 
-        // Secondary safeguard: filter out any accidental header-like rows
-        const rows = contentRows
-          .map(r => ({ name: r.c[0]?.v || "", review: r.c[1]?.v || "" }))
-          .filter(x => x.name && x.review && !(x.name === "Name" && x.review === "Review"));
+        updateDisplay(next.name, next.review);
 
-        if(!rows.length){
-          showStatus("No reviews found.", true);
-          return;
-        }
-
-        const pick = rows[Math.floor(Math.random()*rows.length)];
-        displayReview(pick.name, pick.review);
-      }catch(err){
-        console.error(err);
-        showStatus("Error loading review.", true);
-      }
-    }
-
-    loadReview();
-  </script>
-</body>
-</html>
+        // Fade in
+        quote.classList.remove("fade-out");
+        source.classList.remove("fade-out");
