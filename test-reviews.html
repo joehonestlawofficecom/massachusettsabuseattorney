@@ -1,55 +1,80 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <title>Client Testimonial</title>
+<div class="sqs-layout sqs-grid-12 columns-12 hl-testimonial-layout"><div class="row sqs-row"><div class="col sqs-col-12 span-12">
+  <div class="sqs-block horizontalrule-block sqs-block-horizontalrule" data-block-type="47" id="block-hl-prefooter-hr"><div class="sqs-block-content"><hr></div></div>
+  <div class="sqs-block html-block sqs-block-html" data-block-type="2" id="block-hl-testimonial"><div class="sqs-block-content">
 
+<div class="sqs-html-content" data-sqsp-text-block-content="">
   <style>
-    :root{
-      --bg: #ffffff;
-      --quote-color: #222222;
-      --source-color: #6f6f6f;
-      --accent-quote: #d9d9d9;
-      --max-width: 720px;
+    .hl-testimonial-layout{
+      margin-top: -24px !important;
+      padding-top: 0 !important;
     }
-
-    html, body {
-      height: 100%;
-      margin: 0;
-      background: var(--bg);
+    .hl-testimonial-layout .sqs-row{
+      margin-top: 0 !important;
+    }
+    #block-hl-prefooter-hr{
+      margin-top: 0 !important;
+      padding-top: 0 !important;
+      padding-bottom: 0 !important;
+    }
+    #block-hl-prefooter-hr .sqs-block-content{
+      padding-top: 0 !important;
+      padding-bottom: 0 !important;
+      margin-top: 0 !important;
+      margin-bottom: 0 !important;
+    }
+    #block-hl-prefooter-hr hr{
+      margin-top: 3px !important;
+      margin-bottom: 0 !important;
+    }
+    .hl-testimonial-shell{
+      --hl-review-bg: #ffffff;
+      --hl-review-quote-color: #222222;
+      --hl-review-source-color: #6f6f6f;
+      --hl-review-accent-quote: #d9d9d9;
+      --hl-review-max-width: 720px;
+      background: var(--hl-review-bg);
       font-family: Georgia, "Times New Roman", serif;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
     }
 
-    .testimonial {
-      max-width: var(--max-width);
+    .hl-testimonial{
+      max-width: var(--hl-review-max-width);
       padding: 32px 48px;
       margin: 0 auto;
       text-align: center;
-      color: var(--quote-color);
+      color: var(--hl-review-quote-color);
     }
 
-    .quote-mark {
+    .hl-quote-mark{
       font-size: 72px;
-      color: var(--accent-quote);
+      color: var(--hl-review-accent-quote);
       line-height: 0.6;
       margin-bottom: 18px;
       letter-spacing: 2px;
       display: block;
     }
 
-    .quote-text,
-    .quote-source {
+    .hl-quote-stars,
+    .hl-quote-text,
+    .hl-quote-source{
       opacity: 1;
       transition: opacity 0.6s ease;
     }
 
-    .fade-out {
+    .hl-fade-out{
       opacity: 0;
     }
 
-    .quote-text {
+    .hl-quote-stars{
+      font-size: 28px;
+      line-height: 1;
+      margin: 0 auto 16px;
+      display: block;
+      letter-spacing: 2px;
+    }
+
+    .hl-quote-text{
       font-size: 22px;
       line-height: 1.75;
       margin: 0 auto 28px;
@@ -57,121 +82,131 @@
       font-style: italic;
     }
 
-    .quote-source {
+    .hl-quote-source{
       font-size: 22px;
       line-height: 1.75;
-      color: var(--source-color);
+      color: var(--hl-review-source-color);
     }
 
-    .quote-source::before {
+    .hl-quote-source::before{
       content: "— ";
     }
 
-    .loading, .error {
+    .hl-loading,
+    .hl-error{
       font-size: 15px;
-      color: var(--source-color);
+      color: var(--hl-review-source-color);
     }
 
     @media (max-width:520px){
-      .testimonial { padding: 24px 20px; }
-      .quote-mark { font-size: 56px; }
-      .quote-text,
-      .quote-source {
+      .hl-testimonial { padding: 24px 20px; }
+      .hl-quote-mark { font-size: 56px; }
+      .hl-quote-text,
+      .hl-quote-source {
         font-size: 18px;
         line-height: 1.6;
       }
     }
   </style>
-</head>
 
-<body>
-  <div class="testimonial">
-    <div id="status" class="loading">Loading review...</div>
-
-    <div id="quote-mark" class="quote-mark" style="display:none;">“</div>
-    <div id="quote" class="quote-text" style="display:none;"></div>
-    <div id="source" class="quote-source" style="display:none;"></div>
+  <div class="hl-testimonial-shell">
+    <div class="hl-testimonial">
+      <div id="hl_review_status" class="hl-loading">Loading review...</div>
+      <div id="hl_review_quote_mark" class="hl-quote-mark" style="display:none;">“</div>
+      <div id="hl_review_stars" class="hl-quote-stars" style="display:none;">⭐⭐⭐⭐⭐</div>
+      <div id="hl_review_quote" class="hl-quote-text" style="display:none;"></div>
+      <div id="hl_review_source" class="hl-quote-source" style="display:none;"></div>
+    </div>
   </div>
 
   <script>
-    const spreadsheetId = "12Kr7faOpqZeDDVhnijzpm8AJYJdmR8NxxuUfVbKgnlU";
-    const sheetName = "Sheet1";
-    const url = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/gviz/tq?tqx=out:json&sheet=${sheetName}`;
+    (function(){
+      const spreadsheetId = "12Kr7faOpqZeDDVhnijzpm8AJYJdmR8NxxuUfVbKgnlU";
+      const sheetName = "Sheet1";
+      const url = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/gviz/tq?tqx=out:json&sheet=${sheetName}`;
 
-    let reviews = [];
-    let currentIndex = 0;
-    const intervalTime = 5000;
+      let reviews = [];
+      let currentIndex = 0;
+      const intervalTime = 10000;
 
-    function showStatus(message, isError = false) {
-      const s = document.getElementById("status");
-      s.textContent = message;
-      s.className = isError ? "error" : "loading";
-      s.style.display = "block";
-    }
+      const statusEl = document.getElementById("hl_review_status");
+      const quoteMarkEl = document.getElementById("hl_review_quote_mark");
+      const starsEl = document.getElementById("hl_review_stars");
+      const quoteEl = document.getElementById("hl_review_quote");
+      const sourceEl = document.getElementById("hl_review_source");
 
-    function hideStatus() {
-      document.getElementById("status").style.display = "none";
-    }
+      if (!statusEl || !quoteMarkEl || !starsEl || !quoteEl || !sourceEl) return;
 
-    function updateDisplay(name, review) {
-      document.getElementById("quote").textContent = review;
-      document.getElementById("source").textContent = name;
-    }
+      function showStatus(message, isError = false) {
+        statusEl.textContent = message;
+        statusEl.className = isError ? "hl-error" : "hl-loading";
+        statusEl.style.display = "block";
+      }
 
-    function fadeToNextReview() {
-      const quote = document.getElementById("quote");
-      const source = document.getElementById("source");
+      function hideStatus() {
+        statusEl.style.display = "none";
+      }
 
-      quote.classList.add("fade-out");
-      source.classList.add("fade-out");
+      function updateDisplay(name, review) {
+        quoteEl.textContent = review;
+        sourceEl.textContent = name;
+      }
 
-      setTimeout(() => {
-        currentIndex = (currentIndex + 1) % reviews.length;
-        const next = reviews[currentIndex];
-        updateDisplay(next.name, next.review);
+      function fadeToNextReview() {
+        starsEl.classList.add("hl-fade-out");
+        quoteEl.classList.add("hl-fade-out");
+        sourceEl.classList.add("hl-fade-out");
 
-        quote.classList.remove("fade-out");
-        source.classList.remove("fade-out");
-      }, 600);
-    }
+        setTimeout(() => {
+          currentIndex = (currentIndex + 1) % reviews.length;
+          const next = reviews[currentIndex];
+          updateDisplay(next.name, next.review);
 
-    fetch(url)
-      .then(res => res.text())
-      .then(text => {
-        const json = JSON.parse(
-          text.substring(
-            text.indexOf("{"),
-            text.lastIndexOf("}") + 1
-          )
-        );
+          starsEl.classList.remove("hl-fade-out");
+          quoteEl.classList.remove("hl-fade-out");
+          sourceEl.classList.remove("hl-fade-out");
+        }, 600);
+      }
 
-        // Skip first row (column headings)
-        const rows = json.table.rows.slice(1);
+      fetch(url)
+        .then(res => res.text())
+        .then(text => {
+          const json = JSON.parse(
+            text.substring(
+              text.indexOf("{"),
+              text.lastIndexOf("}") + 1
+            )
+          );
 
-        reviews = rows.map(r => ({
-          name: r.c[0]?.v || "",
-          review: r.c[1]?.v || ""
-        }));
+          const rows = json.table.rows.slice(1);
+          reviews = rows.map(r => ({
+            name: r.c[0]?.v || "",
+            review: r.c[1]?.v || ""
+          }));
 
-        if (!reviews.length) {
-          showStatus("No reviews found", true);
-          return;
-        }
+          if (!reviews.length) {
+            showStatus("No reviews found", true);
+            return;
+          }
 
-        hideStatus();
+          hideStatus();
+          quoteMarkEl.style.display = "block";
+          starsEl.style.display = "block";
+          quoteEl.style.display = "block";
+          sourceEl.style.display = "block";
 
-        document.getElementById("quote-mark").style.display = "block";
-        document.getElementById("quote").style.display = "block";
-        document.getElementById("source").style.display = "block";
-
-        currentIndex = Math.floor(Math.random() * reviews.length);
-        updateDisplay(reviews[currentIndex].name, reviews[currentIndex].review);
-	setInterval(fadeToNextReview, intervalTime);
-      })
-      .catch(err => {
-        console.error(err);
-        showStatus("Unable to load reviews", true);
-      });
+          currentIndex = Math.floor(Math.random() * reviews.length);
+          updateDisplay(reviews[currentIndex].name, reviews[currentIndex].review);
+          setInterval(fadeToNextReview, intervalTime);
+        })
+        .catch(err => {
+          console.error(err);
+          showStatus("Unable to load reviews", true);
+        });
+    })();
   </script>
-</body>
-</html>
+</div>
+
+
+</div></div>
+  </div></div></div>
